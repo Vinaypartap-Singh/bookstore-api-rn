@@ -12,13 +12,23 @@ BookRouteHandler.post("/", async (req: Request, res: Response) => {
   try {
     const payload = CreateBooksValidation.parse(req.body);
 
+    const existingBook = await prisma.book.findUnique({
+      where: {
+        title: payload.title,
+      },
+    });
+
+    if (existingBook) {
+      return handleTryResponseHandler(res, 400, "Book Already Exist");
+    }
+
     const data = await prisma.book.create({
       data: {
         title: payload.title,
         description: payload.description,
         bookName: payload.bookname,
         bookAuthor: payload.bookauthor,
-        bookPublishDate: payload.bookPublishDate,
+        bookPublishDate: new Date(payload.bookPublishDate),
         downloadable: payload.downloadable,
       },
     });
@@ -37,8 +47,6 @@ BookRouteHandler.post("/", async (req: Request, res: Response) => {
     );
   }
 });
-
-export default BookRouteHandler;
 
 BookRouteHandler.put("/update/:id", async (req: Request, res: Response) => {
   try {
@@ -159,3 +167,5 @@ BookRouteHandler.get("/", async (req: Request, res: Response) => {
     });
   }
 });
+
+export default BookRouteHandler;
